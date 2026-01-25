@@ -17,29 +17,26 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* --- 1. BASE DE DISEÑO MODERNO --- */
         body, .leaflet-container, .drobot-title {
             font-family: 'Montserrat', sans-serif !important;
         }
         
-        /* Quitamos el margen feo del navegador */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
 
-        /* Ajuste del mapa para respetar la barra */
+
         #map {
             width: 100%;
             height: calc(100vh - 60px) !important;
             margin-top: 0;
-            background-color: #f0f0f0; /* Fondo suave mientras carga */
-        }
+            background-color: #f0f0f0;}
+        
 
-        /* --- 2. BARRA DROBOT (ALINEACIÓN CORREGIDA) --- */
         #top-bar {
             height: 60px;
             background: linear-gradient(90deg, #0b1c2c 0%, #1a2e40 100%);
             color: white;
             display: flex;
-            align-items: center; /* Centra verticalmente todo el contenido */
+            align-items: center;
             justify-content: space-between;
             padding: 0 25px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -47,7 +44,6 @@
             position: relative;
         }
 
-        /* ESTO ES LO NUEVO: Obligamos al logo y al texto a centrarse entre sí */
         .logo-area {
             display: flex;
             align-items: center; 
@@ -55,19 +51,19 @@
         }
 
         #drobot-logo { 
-            height: 34px; /* Ajusté un poco el tamaño para mejor proporción */
+            height: 34px; 
             width: auto;
             margin-right: 15px; 
-            display: block; /* Elimina espacios extraños de las imágenes */
+            display: block; 
         }
 
         .drobot-title { 
             font-weight: 700; 
-            font-size: 19px; /* Un pelín más grande */
+            font-size: 19px;
             letter-spacing: 0.5px;
-            line-height: 1; /* Elimina el aire arriba/abajo del texto */
+            line-height: 1;
             position: relative;
-            top: 1px; /* Ajuste óptico: baja el texto 1 pixel para que el ojo lo vea centrado */
+            top: 1px;
         }
 
         .client-area { 
@@ -76,22 +72,20 @@
             border-left: 1px solid rgba(255,255,255,0.2); 
             padding-left: 20px; 
             font-weight: 500;
-            height: 30px; /* Altura fija para centrar la línea divisora */
+            height: 30px;
             display: flex;
             align-items: center;
         }
 
         /* --- 3. CONTROLES DEL MAPA (Aquí está la magia visual) --- */
         
-        /* Quitamos los bordes grises feos y ponemos sombras suaves */
         .leaflet-bar {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
             border: none !important;
-            border-radius: 8px !important; /* Esquinas redondeadas */
+            border-radius: 8px !important;
             overflow: hidden;
         }
 
-        /* Estilo de los botones (Zoom, Regla, Buscar) */
         .leaflet-bar a, 
         .leaflet-control-layers-toggle {
             background-color: white !important;
@@ -100,25 +94,24 @@
             height: 36px !important;
             line-height: 36px !important;
             font-weight: bold !important;
-            border-bottom: 1px solid #f0f0f0 !important; /* Separador muy sutil */
-            transition: all 0.2s ease; /* Animación suave al pasar el mouse */
+            border-bottom: 1px solid #f0f0f0 !important;
+            transition: all 0.2s ease;
         }
 
-        /* Efecto HOVER: Cuando pasas el mouse, se pone azul Drobot */
         .leaflet-bar a:hover {
             background-color: #f8f9fa !important;
-            color: #0b1c2c !important; /* Azul Drobot */
-            transform: translateY(-1px); /* Se levanta un poquito */
+            color: #0b1c2c !important;
+            transform: translateY(-1px);
         }
 
         /* --- 4. MENÚ DE CAPAS (Derecha) --- */
         .leaflet-control-layers {
             border: none !important;
-            border-radius: 12px !important; /* Más redondeado */
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important; /* Sombra flotante profunda */
+            border-radius: 12px !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
             padding: 15px !important;
-            background: rgba(255, 255, 255, 0.95) !important; /* Ligeramente translúcido */
-            backdrop-filter: blur(5px); /* Efecto vidrio borroso (Moderno) */
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(5px);
         }
 
         .leaflet-control-layers-group-label {
@@ -140,14 +133,14 @@
         }
         
         .leaflet-control-layers label:hover {
-            color: #007bff; /* Azul brillante al pasar el mouse */
+            color: #007bff;
         }
 
         /* --- 5. POPUPS (Las ventanitas al dar clic) --- */
         .leaflet-popup-content-wrapper {
             border-radius: 12px !important;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
-            padding: 0 !important; /* Quitamos padding para diseñar desde cero */
+            padding: 0 !important;
             overflow: hidden;
         }
         
@@ -157,11 +150,10 @@
             font-size: 13px;
         }
         
-        /* Si tu popup tiene un título en <h3> o similar, esto lo pone bonito */
         .leaflet-popup-content h3 {
             background: #0b1c2c;
             color: white;
-            margin: -15px -15px 10px -15px; /* Expandir al borde */
+            margin: -15px -15px 10px -15px;
             padding: 10px 15px;
             font-size: 14px;
         }
@@ -299,7 +291,6 @@
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
         function removeEmptyRowsFromPopupContent(content, feature) {
          var tempDiv = document.createElement('div');
          tempDiv.innerHTML = content;
@@ -313,7 +304,6 @@
          }
          return tempDiv.innerHTML;
         }
-        // modify popup if contains media
         function addClassToPopupIfMedia(content, popup) {
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
@@ -345,7 +335,6 @@
                     video.style.maxWidth = "60vw";
                     imgTd.parentNode.replaceChild(video, imgTd);
                     popup._contentNode.classList.add('media');
-                    // Aggiorna il popup quando il video carica i metadati
                     video.addEventListener('loadedmetadata', function() {
                         popup.update();
                     });
@@ -966,16 +955,15 @@
         }
 
         function style_Alumbradopostes_12_0(feature) {
-            // ESTO HACE QUE LOS PUNTOS SEAN INVISIBLES (Tamaño 0)
             return {
                 pane: 'pane_Alumbradopostes_12',
                 rotationAngle: 0.0,
                 rotationOrigin: 'center center',
                 icon: L.icon({
                     iconUrl: 'markers/Alumbradopostes_12.svg',
-                    iconSize: [0, 0] // <--- AQUÍ ESTÁ EL TRUCO: Tamaño 0x0
+                    iconSize: [0, 0]
                 }),
-                interactive: false, // No se les puede dar clic (el clic pasará a la capa de abajo)
+                interactive: false,
             }
         }
         map.createPane('pane_Alumbradopostes_12');
@@ -999,7 +987,6 @@
         bounds_group.addLayer(layer_Alumbradopostes_12);
         // --- INICIO DEL CÓDIGO NUEVO (SISTEMA CLÁSICO) ---
         
-        // 1. Definimos los Mapas Base (Google, OSM, etc.)
         var baseMaps = {
             "OpenStreetMap": layer_OpenStreetMap_0,
             "Google Maps": layer_GoogleMaps_1,
@@ -1007,13 +994,9 @@
             "Google Híbrido": layer_GoogleSatelliteHybrid_3
         };
 
-        // 2. Definimos tus Capas (Filtros)
-        // NOTA: Aquí NO incluimos la capa "layer_Alumbradopostes_12" (Master).
-        // Al no ponerla aquí, no saldrá en el mapa ni en el menú, ¡pero el buscador sí la encontrará!
         // --- CÓDIGO DE ÁRBOL CORREGIDO (CON GRUPOS) ---
 
         var overlaysTree = [
-        // 3. MAPAS BASE (Aquí están!)
             {label: "🗺️ Google Híbrido", layer: layer_GoogleSatelliteHybrid_3, radioGroup: 'bm' },
             {label: "🗺️ Google Satélite", layer: layer_GoogleMapSatellite_2, radioGroup: 'bm' },
             {label: "🗺️ Google Maps", layer: layer_GoogleMaps_1, radioGroup: 'bm' },
@@ -1045,15 +1028,18 @@
             
         ];
         
-        // Configuración del control
+        // ---MENÚ DE CAPAS---
+        var isMobile = window.innerWidth < 768;
+
         var lay = L.control.layers.tree(null, overlaysTree, {
             namedToggle: false,
             selectorBack: false,
-            collapsed: false, // Menú principal abierto
+            
+            collapsed: isMobile, 
         });
+        
         lay.addTo(map);
         
-        // --- FIN DEL CÓDIGO NUEVO ---
         setBounds();
         var i = 0;
         layer_Otro_6.eachLayer(function(layer) {
