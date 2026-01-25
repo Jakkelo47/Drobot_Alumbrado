@@ -14,6 +14,7 @@
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="css/leaflet-measure.css">
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         /* --- 1. BASE DE DISEÑO MODERNO --- */
@@ -1197,6 +1198,230 @@
             }
         });
     </script>
+
+
+    <div id="chart-modal" class="modal-overlay" onclick="closeChart()">
+    <div class="chart-card-drobot" onclick="event.stopPropagation()">
+        <div class="chart-header-drobot">
+            <span class="chart-title"><i class="fas fa-chart-pie"></i> Diagnóstico Estadístico</span>
+            <span class="close-chart-btn" onclick="closeChart()">&times;</span>
+        </div>
+        
+        <div class="chart-body-drobot">
+            <canvas id="drobotChart"></canvas>
+        </div>
+        
+        <div class="chart-controls-drobot">
+            <button class="chart-btn active" onclick="updateChartType('bar', this)" title="Barras">
+                <i class="fas fa-chart-bar"></i> Barras
+            </button>
+            <button class="chart-btn" onclick="updateChartType('doughnut', this)" title="Dona">
+                 <i class="fas fa-circle-notch"></i> Dona
+            </button>
+            <button class="chart-btn" onclick="updateChartType('pie', this)" title="Pastel">
+                <i class="fas fa-chart-pie"></i> Pastel
+            </button>
+             <button class="chart-btn" onclick="updateChartType('line', this)" title="Tendencia">
+                <i class="fas fa-chart-line"></i> Línea
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    <style>
+    /* --- ESTILOS DEL DASHBOARD DROBOT --- */
+    .chart-card-drobot {
+        background: white;
+        border-radius: 16px; /* Bordes más suaves */
+        width: 95%;
+        max-width: 700px; /* Un poco más ancho */
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        overflow: hidden; /* Para que el header azul no se salga de las esquinas */
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.4s ease;
+    }
+
+    /* 1. Header Azul */
+    .chart-header-drobot {
+        background: linear-gradient(90deg, #0b1c2c 0%, #1a2e40 100%); /* Mismo azul que la barra principal */
+        color: white;
+        padding: 15px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .chart-title { font-weight: 700; font-size: 18px; letter-spacing: 0.5px; }
+    .close-chart-btn { font-size: 28px; cursor: pointer; color: rgba(255,255,255,0.8); transition: 0.2s; }
+    .close-chart-btn:hover { color: white; }
+
+    /* 2. Cuerpo */
+    .chart-body-drobot {
+        padding: 25px;
+        height: 350px; /* Altura fija para la gráfica */
+        position: relative;
+    }
+
+    /* 3. Controles (Botones inferiores) */
+    .chart-controls-drobot {
+        padding: 15px 25px;
+        background: #f8f9fa; /* Gris muy clarito */
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: center;
+        gap: 10px; /* Espacio entre botones */
+    }
+    .chart-btn {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 30px; /* Botones tipo pastilla */
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        color: #555;
+        transition: all 0.3s ease;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .chart-btn i { font-size: 16px; }
+    
+    /* Estado Activo y Hover */
+    .chart-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+    .chart-btn.active {
+        background: #0b1c2c; /* Azul Drobot cuando está seleccionado */
+        color: white;
+        border-color: #0b1c2c;
+        box-shadow: 0 4px 10px rgba(11, 28, 44, 0.3);
+    }
+    @keyframes slideUp { from {transform:translateY(50px); opacity:0} to {transform:translateY(0); opacity:1} }
+</style>
+
+<script>
+    // --- 1. BOTÓN EN EL MAPA (Igual que antes) ---
+    L.Control.Graph = L.Control.extend({
+        onAdd: function(map) {
+            // Usamos el icono de pastel de FontAwesome para que se vea pro
+            var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            div.innerHTML = '<a href="#" title="Ver Dashboard" role="button" onclick="openChart(event)" style="display:flex; align-items:center; justify-content:center;"><i class="fas fa-chart-pie" style="font-size:20px;"></i></a>';
+            return div;
+        }
+    });
+    new L.Control.Graph({ position: 'topleft' }).addTo(map);
+
+    // --- 2. LÓGICA AVANZADA DE GRÁFICAS ---
+    var myChart; // Variable global para la instancia de la gráfica
+    // Variables globales para los datos (para no recalcularlos siempre)
+    var globalData = [];
+    var globalLabels = ['Apagada', 'Operativo', 'Dañado', 'Directa', 'Intermitente', 'Otro'];
+    var globalColors = ['#333333', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6', '#e67e22'];
+
+    // Función para abrir el modal y cargar datos por primera vez
+    function openChart(e) {
+        if(e) e.preventDefault();
+        document.getElementById("chart-modal").style.display = "flex";
+        document.getElementById("chart-modal").style.alignItems = "center";
+        document.getElementById("chart-modal").style.justifyContent = "center";
+
+        // Si ya calculamos los datos, solo actualizamos el tipo a Barras por defecto
+        if (globalData.length > 0) {
+             // Reseteamos botones visualmente
+             resetButtons();
+             document.querySelector('.chart-btn[onclick*="bar"]').classList.add('active');
+             updateChartType('bar', null); // null porque ya activamos el botón manualmente
+             return;
+        }
+
+        // --- CONTAR DATOS UNA SOLA VEZ ---
+        globalData = [
+            json_Apagada_11.features.length,
+            json_Bueno_10.features.length,
+            json_Daado_9.features.length,
+            json_Directa_8.features.length,
+            json_Intermitente_7.features.length,
+            json_Otro_6.features.length
+        ];
+
+        // Crear la primera gráfica (Barras por defecto)
+        createChart('bar');
+    }
+
+    // Función para CERRAR
+    function closeChart() {
+        document.getElementById("chart-modal").style.display = "none";
+    }
+
+    // --- FUNCIÓN CLAVE: CAMBIAR EL TIPO DE GRÁFICA ---
+    function updateChartType(newType, btnElement) {
+        // 1. Manejo visual de los botones (si se hizo clic en uno)
+        if (btnElement) {
+            resetButtons();
+            btnElement.classList.add('active'); // Activar el botón clickeado
+        }
+
+        // 2. Destruir la gráfica anterior si existe (OBLIGATORIO en Chart.js)
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        // 3. Crear la nueva gráfica con el nuevo tipo
+        createChart(newType);
+    }
+
+    // Función auxiliar para resetear estilo de botones
+    function resetButtons() {
+         var btns = document.querySelectorAll('.chart-btn');
+         btns.forEach(btn => btn.classList.remove('active'));
+    }
+
+    // Función auxiliar para crear la instancia de Chart.js
+    function createChart(type) {
+        var ctx = document.getElementById('drobotChart').getContext('2d');
+        
+        // Configuración base
+        var config = {
+            type: type,
+            data: {
+                labels: globalLabels,
+                datasets: [{
+                    label: 'Cantidad',
+                    data: globalData,
+                    backgroundColor: globalColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    borderRadius: type === 'bar' ? 8 : 0, // Redondear solo si es barras
+                    hoverOffset: 10 // Efecto al pasar el mouse en pastel/dona
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: type !== 'bar' && type !== 'line', // Mostrar leyenda solo en pastel/dona
+                        position: 'bottom',
+                         labels: { font: { family: 'Montserrat', size: 12 } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0b1c2c',
+                        titleFont: { family: 'Montserrat' },
+                        bodyFont: { family: 'Montserrat' }
+                    }
+                },
+                scales: {
+                    // Ocultar ejes X/Y si es pastel o dona, mostrarlos si es barra o línea
+                    x: { display: type === 'bar' || type === 'line' },
+                    y: { display: type === 'bar' || type === 'line', beginAtZero: true }
+                },
+                 elements: {
+                    line: { tension: 0.4 } // Hacer las líneas curvas (suaves)
+                }
+            }
+        };
+
+        myChart = new Chart(ctx, config);
+    }
+</script>
 
     </body>
 </html>
