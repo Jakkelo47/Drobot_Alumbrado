@@ -13,52 +13,234 @@
         <link rel="stylesheet" href="css/leaflet-search.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="css/leaflet-measure.css">
-        <style>
-        /* 1. ESTILOS GENERALES Y MAPA */
-        html, body {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-        }
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
 
+    <style>
+        /* --- 1. BASE DE DISEÑO MODERNO --- */
+        body, .leaflet-container, .drobot-title {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+        
+        /* Quitamos el margen feo del navegador */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+
+        /* Ajuste del mapa para respetar la barra */
         #map {
             width: 100%;
-            height: calc(100vh - 60px) !important; 
+            height: calc(100vh - 60px) !important;
             margin-top: 0;
+            background-color: #f0f0f0; /* Fondo suave mientras carga */
         }
 
-        /* 2. ESTILOS DE LA BARRA DROBOT (Esto sí se queda) */
+        /* --- 2. BARRA DROBOT (ALINEACIÓN CORREGIDA) --- */
         #top-bar {
             height: 60px;
-            background-color: #0b1c2c; 
+            background: linear-gradient(90deg, #0b1c2c 0%, #1a2e40 100%);
             color: white;
             display: flex;
-            align-items: center;
+            align-items: center; /* Centra verticalmente todo el contenido */
             justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            font-family: Arial, sans-serif;
+            padding: 0 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             z-index: 3000;
             position: relative;
         }
 
-        #drobot-logo { height: 40px; margin-right: 15px; vertical-align: middle; }
-        .drobot-title { font-weight: bold; font-size: 18px; vertical-align: middle; }
-        .client-area { font-size: 14px; color: #ddd; border-left: 1px solid #555; padding-left: 15px; }
-
-        /* 3. AJUSTE DE POSICIÓN (Para que los controles no choquen con la barra) */
-        .leaflet-top {
-            top: 10px; 
+        /* ESTO ES LO NUEVO: Obligamos al logo y al texto a centrarse entre sí */
+        .logo-area {
+            display: flex;
+            align-items: center; 
+            height: 100%;
         }
 
-        /* 4. ESCONDER ETIQUETAS DE LA CAPA MASTER (Esto es vital para que no se vean los P-001) */
-        .css_Alumbradopostes_12 {
-            display: none !important;
+        #drobot-logo { 
+            height: 34px; /* Ajusté un poco el tamaño para mejor proporción */
+            width: auto;
+            margin-right: 15px; 
+            display: block; /* Elimina espacios extraños de las imágenes */
         }
 
-       
+        .drobot-title { 
+            font-weight: 700; 
+            font-size: 19px; /* Un pelín más grande */
+            letter-spacing: 0.5px;
+            line-height: 1; /* Elimina el aire arriba/abajo del texto */
+            position: relative;
+            top: 1px; /* Ajuste óptico: baja el texto 1 pixel para que el ojo lo vea centrado */
+        }
+
+        .client-area { 
+            font-size: 13px; 
+            color: rgba(255,255,255,0.8); 
+            border-left: 1px solid rgba(255,255,255,0.2); 
+            padding-left: 20px; 
+            font-weight: 500;
+            height: 30px; /* Altura fija para centrar la línea divisora */
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- 3. CONTROLES DEL MAPA (Aquí está la magia visual) --- */
+        
+        /* Quitamos los bordes grises feos y ponemos sombras suaves */
+        .leaflet-bar {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            border: none !important;
+            border-radius: 8px !important; /* Esquinas redondeadas */
+            overflow: hidden;
+        }
+
+        /* Estilo de los botones (Zoom, Regla, Buscar) */
+        .leaflet-bar a, 
+        .leaflet-control-layers-toggle {
+            background-color: white !important;
+            color: #444 !important;
+            width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+            font-weight: bold !important;
+            border-bottom: 1px solid #f0f0f0 !important; /* Separador muy sutil */
+            transition: all 0.2s ease; /* Animación suave al pasar el mouse */
+        }
+
+        /* Efecto HOVER: Cuando pasas el mouse, se pone azul Drobot */
+        .leaflet-bar a:hover {
+            background-color: #f8f9fa !important;
+            color: #0b1c2c !important; /* Azul Drobot */
+            transform: translateY(-1px); /* Se levanta un poquito */
+        }
+
+        /* --- 4. MENÚ DE CAPAS (Derecha) --- */
+        .leaflet-control-layers {
+            border: none !important;
+            border-radius: 12px !important; /* Más redondeado */
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important; /* Sombra flotante profunda */
+            padding: 15px !important;
+            background: rgba(255, 255, 255, 0.95) !important; /* Ligeramente translúcido */
+            backdrop-filter: blur(5px); /* Efecto vidrio borroso (Moderno) */
+        }
+
+        .leaflet-control-layers-group-label {
+            color: #0b1c2c;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 8px;
+            display: block;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+
+        .leaflet-control-layers label {
+            margin-bottom: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .leaflet-control-layers label:hover {
+            color: #007bff; /* Azul brillante al pasar el mouse */
+        }
+
+        /* --- 5. POPUPS (Las ventanitas al dar clic) --- */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+            padding: 0 !important; /* Quitamos padding para diseñar desde cero */
+            overflow: hidden;
+        }
+        
+        .leaflet-popup-content {
+            margin: 15px !important;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+        
+        /* Si tu popup tiene un título en <h3> o similar, esto lo pone bonito */
+        .leaflet-popup-content h3 {
+            background: #0b1c2c;
+            color: white;
+            margin: -15px -15px 10px -15px; /* Expandir al borde */
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+
+        /* --- 6. UTILIDADES --- */
+        /* Separar controles de la barra superior */
+        .leaflet-top { top: 20px; }
+        .leaflet-left { left: 20px; }
+        .leaflet-right { right: 20px; }
+
+        /* Esconder capa master (Vital) */
+        .css_Alumbradopostes_12 { display: none !important; }
+
+        /* --- 7. MEJORA DE POPUPS "PREMIUM" + VISOR GIGANTE --- */
+
+        /* 1. OCULTAR FID (Igual que antes) */
+        .leaflet-popup-content table tr:first-child { display: none !important; }
+
+        /* 2. ESTILO TABLA (Igual que antes) */
+        .leaflet-popup-content table {
+            width: 100% !important; border-collapse: separate !important;
+            border-spacing: 0 8px !important; font-size: 14px !important; margin: 10px 0 !important;
+        }
+        .leaflet-popup-content th {
+            text-align: left !important; color: #888 !important; font-weight: 500 !important;
+            vertical-align: top !important; width: 30% !important; padding-right: 5px !important;
+        }
+        .leaflet-popup-content td {
+            text-align: left !important; color: #0b1c2c !important; font-weight: 700 !important;
+            vertical-align: top !important; width: 70% !important; word-break: break-word !important;
+        }
+
+        /* 3. LA MINIATURA EN EL POPUP (SECCIÓN CLAVE) */
+        /* Hacemos que se vea bonita e indique que se puede hacer clic */
+        .leaflet-popup-content td img, .leaflet-popup-content td a img {
+            display: block !important; width: 100% !important; max-width: 300px !important;
+            height: 200px !important; /* Altura fija para que se vea uniforme */
+            object-fit: cover !important; /* Recorta la foto para llenar el cuadro sin deformar */
+            border-radius: 12px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+            margin-top: 10px !important;
+            cursor: zoom-in !important; /* <--- ESTO MUESTRA LA LUPA AL PASAR EL MOUSE */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        /* Efecto al pasar el mouse sobre la miniatura */
+        .leaflet-popup-content td img:hover {
+            transform: scale(1.03); /* Se agranda un poquito */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+        }
+
+        /* 4. ESTILOS DEL VISOR PANTALLA COMPLETA (NUEVO) */
+        /* El fondo negro transparente */
+        .modal-overlay {
+            display: none; /* Oculto por defecto */
+            position: fixed; z-index: 99999; /* Por encima de TODO */
+            padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.92); /* Negro profundo casi sólido */
+            backdrop-filter: blur(5px); /* Efecto borroso de fondo */
+        }
+        /* La imagen gigante */
+        .modal-content {
+            margin: auto; display: block; width: auto; height: auto;
+            max-width: 90vw; /* Máximo 90% del ancho de la pantalla */
+            max-height: 85vh; /* Máximo 85% del alto de la pantalla */
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: zoom 0.4s; /* Animación de entrada */
+        }
+        /* Botón de cerrar (X) */
+        .close-modal {
+            position: absolute; top: 20px; right: 35px; color: #f1f1f1;
+            font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;
+        }
+        .close-modal:hover, .close-modal:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+        /* Animación de zoom */
+        @keyframes zoom { from {transform:scale(0.8); opacity:0} to {transform:scale(1); opacity:1} }
+        
+        /* Ajustes del contenedor del popup */
+        .leaflet-popup-content { min-width: 320px !important; }
+        .leaflet-popup-content-wrapper { border-radius: 16px !important; }
     </style>
         <title></title>
     </head>
@@ -299,7 +481,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -378,7 +560,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -457,7 +639,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -536,7 +718,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -616,7 +798,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -695,7 +877,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Observaciones</th>\
-                        <td class="visible-with-data" id="Observaciones">' + (feature.properties['Observaciones'] !== null ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td id="Observaciones">' + ((feature.properties['Observaciones'] !== null && feature.properties['Observaciones'] !== "") ? autolinker.link(String(feature.properties['Observaciones']).replace(/'/g, '\'').toLocaleString()) : 'ninguno') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -976,6 +1158,45 @@
         map.on("layerremove", function(){
             resetLabels([layer_Otro_6,layer_Intermitente_7,layer_Directa_8,layer_Daado_9,layer_Bueno_10,layer_Apagada_11]);
         });
-        </script>        
+        
+        </script>    
+        
+        <div id="image-modal" class="modal-overlay" onclick="closeModal()">
+  <span class="close-modal">&times;</span>
+  <img class="modal-content" id="full-image">
+</div>
+    
+    <script>
+        // 1. Función para CERRAR el visor (la llama el onclick del HTML)
+        function closeModal() {
+            document.getElementById("image-modal").style.display = "none";
+        }
+
+        // 2. DETECTOR DE CLICS "A PRUEBA DE FALLOS"
+        // Este código vigila cualquier clic que hagas en la pantalla
+        document.addEventListener('click', function(e) {
+            
+            // ¿Le diste clic a una IMAGEN (IMG) que está dentro de un POPUP?
+            if (e.target && e.target.tagName === 'IMG' && e.target.closest('.leaflet-popup-content')) {
+                
+                // ¡SÍ! Entonces detenemos lo que sea que iba a hacer el navegador
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Buscamos tu caja negra y la imagen gigante
+                var modal = document.getElementById("image-modal");
+                var modalImg = document.getElementById("full-image");
+                
+                // La mostramos en pantalla
+                modal.style.display = "flex";
+                modal.style.alignItems = "center";
+                modal.style.justifyContent = "center";
+                
+                // Le pasamos la foto que tocaste para que se vea grande
+                modalImg.src = e.target.src;
+            }
+        });
+    </script>
+
     </body>
 </html>
