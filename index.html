@@ -20,20 +20,19 @@
             height: 100%;
             padding: 0;
             margin: 0;
-            overflow: hidden; /* Evita barras de scroll dobles */
+            overflow: hidden;
         }
 
         #map {
             width: 100%;
-            /* ESTO ES CLAVE: Resta los 60px de la barra para que el mapa encaje */
             height: calc(100vh - 60px) !important; 
             margin-top: 0;
         }
 
-        /* 2. ESTILOS DE LA BARRA DROBOT */
+        /* 2. ESTILOS DE LA BARRA DROBOT (Esto sí se queda) */
         #top-bar {
             height: 60px;
-            background-color: #0b1c2c; /* Azul Drobot */
+            background-color: #0b1c2c; 
             color: white;
             display: flex;
             align-items: center;
@@ -49,16 +48,17 @@
         .drobot-title { font-weight: bold; font-size: 18px; vertical-align: middle; }
         .client-area { font-size: 14px; color: #ddd; border-left: 1px solid #555; padding-left: 15px; }
 
-        /* 4. SEPARAR CONTROLES (LO QUE PREGUNTASTE) */
-        /* Esto baja un poquito el zoom y las capas para que no queden pegados a la barra azul */
+        /* 3. AJUSTE DE POSICIÓN (Para que los controles no choquen con la barra) */
         .leaflet-top {
             top: 10px; 
         }
 
-        /* ESTO ESCONDE LAS ETIQUETAS P-001, P-002 DE LA CAPA MASTER */
-    .css_Alumbradopostes_12 {
-        display: none !important;
-    }
+        /* 4. ESCONDER ETIQUETAS DE LA CAPA MASTER (Esto es vital para que no se vean los P-001) */
+        .css_Alumbradopostes_12 {
+            display: none !important;
+        }
+
+       
     </style>
         <title></title>
     </head>
@@ -69,7 +69,7 @@
             <span class="drobot-title">DROBOT | Gestión de Alumbrado</span>
         </div>
         <div class="client-area">
-            <span>Kawatsin</span>
+            <span>Kawatzin</span>
         </div>
     </div>
         <div id="map">
