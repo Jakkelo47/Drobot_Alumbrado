@@ -17,29 +17,48 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+    /* --- 1. EL CANDADO UNIVERSAL (NUEVO) --- */
+    * {
+        box-sizing: border-box; /* Esto arregla el error de matemáticas */
+    }
+
+    /* --- 2. ELIMINAR REBOTE (NUEVO) --- */
+    html, body { 
+        margin: 0; 
+        padding: 0; 
+        width: 100%; 
+        height: 100%; 
+        overflow: hidden; 
+        overscroll-behavior: none; /* Esto evita que "reboten" en iPhone/Android */
+    }
+        /* --- FUENTE OFICIAL --- */
         body, .leaflet-container, .drobot-title {
             font-family: 'Montserrat', sans-serif !important;
         }
         
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
 
-
         #map {
-            width: 100%;
-            height: calc(100vh - 60px) !important;
-            margin-top: 0;
-            background-color: #f0f0f0;}
-        
+    width: 100%;
+    
+    height: calc(100vh - 80px) !important; 
+    margin-top: 0;
+    background-color: #f0f0f0;
+}
 
+        /* --- 1. BARRA SUPERIOR (TU PALETA EXACTA) --- */
         #top-bar {
-            height: 60px;
-            background: linear-gradient(90deg, #0b1c2c 0%, #1a2e40 100%);
+            height: 80px;
+            /* TU COLOR 1: Guinda Oscuro #7E1928 */
+            background: #7E1928; 
+            /* TU COLOR 2: Dorado #C3935D */
+            border-bottom: 4px solid #C3935D; 
             color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 3000;
             position: relative;
         }
@@ -51,34 +70,34 @@
         }
 
         #drobot-logo { 
-            height: 34px; 
+            height: 45px;
             width: auto;
             margin-right: 15px; 
             display: block; 
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
 
         .drobot-title { 
             font-weight: 700; 
-            font-size: 19px;
+            font-size: 18px;
             letter-spacing: 0.5px;
-            line-height: 1;
-            position: relative;
-            top: 1px;
+            line-height: 1.2;
+            text-transform: uppercase;
         }
 
         .client-area { 
             font-size: 13px; 
-            color: rgba(255,255,255,0.8); 
-            border-left: 1px solid rgba(255,255,255,0.2); 
+            color: rgba(255,255,255,0.9); 
+            /* TU COLOR 2: Dorado */
+            border-left: 1px solid #C3935D; 
             padding-left: 20px; 
-            font-weight: 500;
-            height: 30px;
+            font-weight: 600;
+            height: 40px;
             display: flex;
             align-items: center;
         }
 
-        /* --- 3. CONTROLES DEL MAPA (Aquí está la magia visual) --- */
-        
+        /* --- 2. CONTROLES DEL MAPA --- */
         .leaflet-bar {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
             border: none !important;
@@ -98,13 +117,14 @@
             transition: all 0.2s ease;
         }
 
+        /* Hover con TU COLOR 3 (Rojo Vivo #A21131) */
         .leaflet-bar a:hover {
             background-color: #f8f9fa !important;
-            color: #0b1c2c !important;
-            transform: translateY(-1px);
+            color: #A21131 !important; 
+            border-left: 3px solid #C3935D !important;
         }
 
-        /* --- 4. MENÚ DE CAPAS (Derecha) --- */
+        /* --- 3. MENÚ DE CAPAS --- */
         .leaflet-control-layers {
             border: none !important;
             border-radius: 12px !important;
@@ -115,12 +135,12 @@
         }
 
         .leaflet-control-layers-group-label {
-            color: #0b1c2c;
+            color: #7E1928; /* Guinda Oscuro */
             font-weight: 700;
             font-size: 14px;
             margin-top: 8px;
             display: block;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #C3935D; /* Dorado */
             padding-bottom: 4px;
             margin-bottom: 8px;
         }
@@ -133,10 +153,10 @@
         }
         
         .leaflet-control-layers label:hover {
-            color: #007bff;
+            color: #A21131; /* Rojo Vivo al pasar mouse */
         }
 
-        /* --- 5. POPUPS (Las ventanitas al dar clic) --- */
+        /* --- 4. POPUPS --- */
         .leaflet-popup-content-wrapper {
             border-radius: 12px !important;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
@@ -151,104 +171,136 @@
         }
         
         .leaflet-popup-content h3 {
-            background: #0b1c2c;
+            background: #7E1928; /* Guinda Oscuro */
+            border-bottom: 3px solid #C3935D; /* Dorado */
             color: white;
             margin: -15px -15px 10px -15px;
             padding: 10px 15px;
             font-size: 14px;
+            text-transform: uppercase;
         }
 
-        /* --- 6. UTILIDADES --- */
-        /* Separar controles de la barra superior */
+        /* --- 5. UTILIDADES --- */
         .leaflet-top { top: 20px; }
         .leaflet-left { left: 20px; }
         .leaflet-right { right: 20px; }
-
-        /* Esconder capa master (Vital) */
         .css_Alumbradopostes_12 { display: none !important; }
 
-        /* --- 7. MEJORA DE POPUPS "PREMIUM" + VISOR GIGANTE --- */
-
-        /* 1. OCULTAR FID (Igual que antes) */
+        /* --- 6. TABLA POPUP --- */
         .leaflet-popup-content table tr:first-child { display: none !important; }
-
-        /* 2. ESTILO TABLA (Igual que antes) */
         .leaflet-popup-content table {
             width: 100% !important; border-collapse: separate !important;
             border-spacing: 0 8px !important; font-size: 14px !important; margin: 10px 0 !important;
         }
         .leaflet-popup-content th {
-            text-align: left !important; color: #888 !important; font-weight: 500 !important;
+            text-align: left !important; color: #666 !important; font-weight: 500 !important;
             vertical-align: top !important; width: 30% !important; padding-right: 5px !important;
         }
         .leaflet-popup-content td {
-            text-align: left !important; color: #0b1c2c !important; font-weight: 700 !important;
+            text-align: left !important; color: #333 !important;
+            font-weight: 700 !important;
             vertical-align: top !important; width: 70% !important; word-break: break-word !important;
         }
 
-        /* 3. LA MINIATURA EN EL POPUP (SECCIÓN CLAVE) */
-        /* Hacemos que se vea bonita e indique que se puede hacer clic */
+        /* --- 7. MINIATURAS Y VISOR --- */
         .leaflet-popup-content td img, .leaflet-popup-content td a img {
             display: block !important; width: 100% !important; max-width: 300px !important;
-            height: 200px !important; /* Altura fija para que se vea uniforme */
-            object-fit: cover !important; /* Recorta la foto para llenar el cuadro sin deformar */
+            height: 200px !important;
+            object-fit: cover !important;
             border-radius: 12px !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
             margin-top: 10px !important;
-            cursor: zoom-in !important; /* <--- ESTO MUESTRA LA LUPA AL PASAR EL MOUSE */
+            cursor: zoom-in !important;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        /* Efecto al pasar el mouse sobre la miniatura */
         .leaflet-popup-content td img:hover {
-            transform: scale(1.03); /* Se agranda un poquito */
+            transform: scale(1.03);
             box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
         }
-
-        /* 4. ESTILOS DEL VISOR PANTALLA COMPLETA (NUEVO) */
-        /* El fondo negro transparente */
         .modal-overlay {
-            display: none; /* Oculto por defecto */
-            position: fixed; z-index: 99999; /* Por encima de TODO */
+            display: none;
+            position: fixed; z-index: 99999;
             padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.92); /* Negro profundo casi sólido */
-            backdrop-filter: blur(5px); /* Efecto borroso de fondo */
+            background-color: rgba(0,0,0,0.92);
+            backdrop-filter: blur(5px);
         }
-        /* La imagen gigante */
         .modal-content {
             margin: auto; display: block; width: auto; height: auto;
-            max-width: 90vw; /* Máximo 90% del ancho de la pantalla */
-            max-height: 85vh; /* Máximo 85% del alto de la pantalla */
+            max-width: 90vw; max-height: 85vh;
             border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: zoom 0.4s; /* Animación de entrada */
+            animation: zoom 0.4s;
         }
-        /* Botón de cerrar (X) */
         .close-modal {
             position: absolute; top: 20px; right: 35px; color: #f1f1f1;
             font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;
         }
         .close-modal:hover, .close-modal:focus { color: #bbb; text-decoration: none; cursor: pointer; }
-        /* Animación de zoom */
         @keyframes zoom { from {transform:scale(0.8); opacity:0} to {transform:scale(1); opacity:1} }
-        
-        /* Ajustes del contenedor del popup */
         .leaflet-popup-content { min-width: 320px !important; }
         .leaflet-popup-content-wrapper { border-radius: 16px !important; }
+
+        /* --- 8. DASHBOARD (Colores Nuevos) --- */
+        .chart-card-drobot {
+            background: white;
+            border-radius: 16px;
+            width: 95%; max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            animation: slideUp 0.4s ease;
+        }
+        .chart-header-drobot {
+            background: #7E1928 !important; /* Guinda Oscuro */
+            border-bottom: 3px solid #C3935D !important; /* Dorado */
+            color: white;
+            padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chart-title { font-weight: 700; font-size: 18px; letter-spacing: 0.5px; }
+        .close-chart-btn { font-size: 28px; cursor: pointer; color: rgba(255,255,255,0.8); transition: 0.2s; }
+        .close-chart-btn:hover { color: white; }
+        .chart-body-drobot { padding: 25px; height: 350px; position: relative; }
+        .chart-controls-drobot {
+            padding: 15px 25px; background: #f8f9fa; border-top: 1px solid #eee;
+            display: flex; justify-content: center; gap: 10px;
+        }
+        .chart-btn {
+            background: white; border: 1px solid #ddd; padding: 10px 20px;
+            border-radius: 30px; cursor: pointer;
+            font-family: 'Montserrat', sans-serif; font-weight: 600; color: #555;
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+        }
+        .chart-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .chart-btn.active {
+            background: #7E1928; /* Guinda Activo */
+            color: white; border-color: #7E1928;
+            box-shadow: 0 4px 10px rgba(126, 25, 40, 0.3);
+        }
+        @keyframes slideUp { from {transform:translateY(50px); opacity:0} to {transform:translateY(0); opacity:1} }
     </style>
         <title></title>
     </head>
     <body>
-        <div id="top-bar">
-        <div class="logo-area">
-            <img src="logo.png" alt="Drobot Logo" id="drobot-logo">
-            <span class="drobot-title">DROBOT | Gestión de Alumbrado</span>
+    <div id="top-bar"> <div class="logo-area">
+            <div class="logo-box">
+                <img src="Martínez_logo.jpeg" alt="Escudo" id="drobot-logo">
+            </div>
+            
+            <div style="display:flex; flex-direction:column; justify-content:center;">
+                <span class="drobot-title" style="font-size:16px;">H. AYUNTAMIENTO</span>
+                <span style="font-size:11px; font-weight:400; text-transform:uppercase; letter-spacing:1px;">Martínez de la Torre | 2026-2029</span>
+            </div>
         </div>
         <div class="client-area">
-            <span>Kawatzin</span>
+            <span>CATASTRO Y DESARROLLO URBANO</span>
         </div>
+
+    </div> <div id="map">
     </div>
-        <div id="map">
-        </div>
+        <script src="data/Manzanas_4.js"></script>
+        <script src="data/Limitemunicipal_5.js"></script>
+        <script src="js/leaflet-side-by-side.js"></script>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -287,8 +339,8 @@
         }
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        })
-        var hash = new L.Hash(map);
+        }).setView([20.0605, -97.0555], 14); // <--- AQUÍ FORZAMOS MARTÍNEZ DE LA TORRE
+        //var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
         function removeEmptyRowsFromPopupContent(content, feature) {
@@ -996,51 +1048,239 @@
 
         // --- CÓDIGO DE ÁRBOL CORREGIDO (CON GRUPOS) ---
 
-        var overlaysTree = [
-            {label: "🗺️ Google Híbrido", layer: layer_GoogleSatelliteHybrid_3, radioGroup: 'bm' },
-            {label: "🗺️ Google Satélite", layer: layer_GoogleMapSatellite_2, radioGroup: 'bm' },
-            {label: "🗺️ Google Maps", layer: layer_GoogleMaps_1, radioGroup: 'bm' },
-            {label: "🗺️ OpenStreetMap", layer: layer_OpenStreetMap_0, radioGroup: 'bm' },
-            // 1. GRUPO ESTADOS (Con todos tus filtros)
-            {
-                label: '<b>Estados</b>',
-                selectAllCheckbox: true,
-                collapsed: false, // ¡ESTO HACE QUE SALGA ABIERTO!
-                children: [
-                    {label: '⚫ Apagada', layer: layer_Apagada_11},
-                    {label: '🟢 Operativo (Bueno)', layer: layer_Bueno_10},
-                    {label: '🔴 Dañado', layer: layer_Daado_9},
-                    {label: '🟡 Directa', layer: layer_Directa_8},
-                    {label: '🟣 Intermitente', layer: layer_Intermitente_7},
-                    {label: '🟠 Otro', layer: layer_Otro_6},
-                ]
-            },
-            // 2. GRUPO ORTOFOTOS
-            {
-                label: '<b>Ortofoto</b>',
-                selectAllCheckbox: true,
-                collapsed: false,
-                children: [
-                    {label: "Ortofoto Parte 1", layer: layer_dji_fly_20250722_185256_0182_1769184314666_photo_modified_5},
-                    {label: "Ortofoto Parte 2", layer: layer_dji_fly_20250722_185244_0181_1769184310403_photo_modified_4},
-                ]
-            },
-            
-        ];
-        
-        // ---MENÚ DE CAPAS---
-        var isMobile = window.innerWidth < 768;
+        // --- 1. LÍMITES MUNICIPALES (Marco Dorado Institucional) ---
+    function style_Limites(feature) {
+        return {
+            pane: 'pane_Limites',
+            opacity: 1,
+            color: '#C3935D',      // Dorado Oficial (Tu color)
+            dashArray: '15, 5, 1, 5', // Patrón: Raya larga - punto (Estilo INEGI)
+            lineCap: 'square',
+            lineJoin: 'bevel',
+            weight: 3.5,           // Bien grueso para que imponga autoridad
+            fillOpacity: 0,
+            interactive: false,    // No necesitamos darle clic a la línea
+        }
+    }
+    
+    // Creamos un "piso" (pane) especial para que esta línea siempre quede ARRIBA de todo
+    map.createPane('pane_Limites');
+    map.getPane('pane_Limites').style.zIndex = 600; 
+    map.getPane('pane_Limites').style.pointerEvents = 'none';
 
-        var lay = L.control.layers.tree(null, overlaysTree, {
-            namedToggle: false,
-            selectorBack: false,
+    // ¡OJO AQUÍ! Revisa que 'json_Limites_municipal' sea el nombre real dentro de tu archivo .js
+    /* =========================================
+       PASO 1: CREACIÓN DE CAPAS DE GOBIERNO
+       (Deben existir antes de meterlas al menú)
+       ========================================= */
+
+    // --- A. LÍMITES MUNICIPALES ---
+    // Verificamos si los datos cargaron para que no truene la página
+    /* --------------------------------------------------------
+       PASO 1: CREAR LAS CAPAS NUEVAS (COCINAR)
+       (Esto TIENE que ir antes del menú sí o sí)
+       -------------------------------------------------------- */
+    
+    // CAPA 1: LÍMITES (Dorado)
+    // --- A. LÍMITES MUNICIPALES (Corregido con _5) ---
+    var layer_Limites; 
+    
+    // OJO: Aquí cambié el nombre de la variable para que coincida con tu archivo nuevo
+    if (typeof json_Limitemunicipal_5 !== 'undefined') {
+        layer_Limites = new L.geoJson(json_Limitemunicipal_5, { 
+            style: {
+                pane: 'pane_Alumbradopostes_12', 
+                color: '#ffff00', // Dorado
+                weight: 4,
+                dashArray: '15, 5, 1, 5',
+                fill: false,
+                interactive: false
+            }
+        }).addTo(map); 
+    } else {
+        console.log("⚠️ ERROR: Busqué 'json_Limitemunicipal_5' y no lo hallé.");
+        layer_Limites = L.layerGroup(); 
+    }
+
+    // --- B. MANZANAS (Corregido con _4) ---
+    // --- B. MANZANAS (Versión Blindada: Cero Errores + Móvil) ---
+    
+    // 1. VARIABLE DE RASTREO (El "Vigilante")
+    // Esta variable recordará qué manzana está prendida para apagarla si el mouse falla.
+    // --- B. MANZANAS (Versión Final: Estilo "Luz de Oro") ---
+    
+    var manzanaActiva = null; 
+    var layer_Manzanas;
+
+    if (typeof json_Manzanas_4 !== 'undefined') {
+        layer_Manzanas = new L.geoJson(json_Manzanas_4, {
             
-            collapsed: isMobile, 
-        });
+            // 2. ESTILO BASE (El Fantasma Invisible)
+            style: function(feature) {
+                return {
+                    pane: 'pane_Alumbradopostes_12',
+                    color: 'rgba(255,255,255,0.6)', 
+                    weight: 0.5,
+                    fill: true,
+                    fillColor: '#ffffff',
+                    fillOpacity: 0.0,
+                    interactive: true
+                };
+            },
+            
+            // 3. LÓGICA DE INTERACCIÓN
+            onEachFeature: function (feature, layer) {
+                
+                // Función para PRENDER (EL CAMBIO ESTÁ AQUÍ 👇)
+                function encenderManzana(targetLayer) {
+                    // Si ya hay una prendida (y no es esta), APÁGALA
+                    if (manzanaActiva && manzanaActiva !== targetLayer) {
+                        layer_Manzanas.resetStyle(manzanaActiva);
+                    }
+                    
+                    // AHORA SÍ: Efecto "Luz Prendida"
+                    targetLayer.setStyle({
+                        weight: 3,             // Borde un pelín más grueso para resaltar
+                        color: '#C3935D',      // Borde: Dorado Oficial (Serio)
+                        fillColor: '#FFD700',  // Relleno: Oro Brillante (Luz)
+                        fillOpacity: 0.3       // 30% Opacidad (Se nota más pero deja ver el mapa)
+                    });
+                    
+                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                        targetLayer.bringToFront();
+                    }
+                    
+                    manzanaActiva = targetLayer;
+                }
+
+                // Función para APAGAR (Reset)
+                function apagarManzana(targetLayer) {
+                    layer_Manzanas.resetStyle(targetLayer);
+                    if (manzanaActiva === targetLayer) {
+                        manzanaActiva = null;
+                    }
+                }
+
+                // EVENTOS
+                layer.on({
+                    mouseover: function(e) { encenderManzana(e.target); },
+                    
+                    mouseout: function(e) { 
+                        if (!e.target.isPopupOpen()) { apagarManzana(e.target); } 
+                    },
+                    
+                    click: function(e) {
+                        encenderManzana(e.target);
+                        map.fitBounds(e.target.getBounds());
+                    },
+                    
+                    popupclose: function(e) { apagarManzana(e.target); }
+                });
+
+                // 4. FICHA TÉCNICA (TU DISEÑO DE LUJO)
+                var props = feature.properties;
+                var fichaHTML = `
+                    <div style="font-family: 'Montserrat', sans-serif; min-width: 220px;">
+                        <div style="background: #7E1928; color: white; padding: 10px; border-radius: 8px 8px 0 0; border-bottom: 3px solid #C3935D; text-align: center;">
+                            <div style="font-size: 10px; letter-spacing: 1px; opacity: 0.8; text-transform:uppercase;">Manzana Catastral</div>
+                            <div style="font-size: 16px; font-weight: 800; margin-top: 2px;">${props.CVE_MZA || 'S/N'}</div>
+                        </div>
+
+                        <div style="padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px;">
+                            <div style="margin-bottom: 12px; text-align: center;">
+                                <span style="font-size: 10px; color: #666; display: block; margin-bottom: 2px;">CLAVE ÚNICA (CVEGEO)</span>
+                                <span style="background: #eef2f5; color: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #ccc; display: block; letter-spacing:1px;">
+                                    ${props.CVEGEO || 'Sin Dato'}
+                                </span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                                <div><strong style="color: #7E1928;">MUNICIPIO</strong><br>${props.CVE_MUN || '-'}</div>
+                                <div><strong style="color: #7E1928;">LOCALIDAD</strong><br>${props.CVE_LOC || '-'}</div>
+                                <div><strong style="color: #7E1928;">AGEB</strong><br>${props.CVE_AGEB || '-'}</div>
+                                <div><strong style="color: #7E1928;">ÁMBITO</strong><br>${props.AMBITO || '-'}</div>
+                            </div>
+
+                            <div style="margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 8px; font-size: 10px; text-align: center; color: #888;">
+                                TIPO: <strong style="color: #444;">${props.TIPOMZA || 'Estándar'}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                layer.bindPopup(fichaHTML, { maxWidth: 300, className: 'popup-manzana-custom' });
+            }
+        }).addTo(map);
+    } else {
+        console.log("⚠️ ERROR: No encuentro json_Manzanas_4");
+        layer_Manzanas = L.layerGroup();
+    }
+    /* --------------------------------------------------------
+       PASO 2: CREAR EL MENÚ (SERVIR)
+       (Ahora sí podemos usar las variables de arriba)
+       -------------------------------------------------------- */
+
+    var overlaysTree = [
+        // GRUPO 1: CATASTRO
+        {
+            label: '<b>🏛️ Catastro Municipal</b>',
+            selectAllCheckbox: true,
+            collapsed: false,
+            children: [
+                {label: "📍 Límite Municipal", layer: layer_Limites},
+                {label: "⬜ Traza Urbana (Manzanas)", layer: layer_Manzanas},
+            ]
+        },
+
+        // GRUPO 3: INFRAESTRUCTURA (Lámparas)
+        {
+            label: '<b>💡 INFRAESTRUCTURA</b>',
+            selectAllCheckbox: true,
+            collapsed: true,
+            children: [
+                {label: '⚫ Apagada', layer: layer_Apagada_11},
+                {label: '🟢 Operativo (Bueno)', layer: layer_Bueno_10},
+                {label: '🔴 Dañado', layer: layer_Daado_9},
+                {label: '🟡 Directa', layer: layer_Directa_8},
+                {label: '🟣 Intermitente', layer: layer_Intermitente_7},
+                {label: '🟠 Otro', layer: layer_Otro_6},
+            ]
+        },
+
+        // GRUPO 4: ORTOFOTOS
+        {
+            label: '<b>Ortofotos</b>',
+            selectAllCheckbox: true,
+            collapsed: true,
+            children: [
+                {label: "Ortofoto Parte 1", layer: layer_dji_fly_20250722_185256_0182_1769184314666_photo_modified_5},
+                {label: "Ortofoto Parte 2", layer: layer_dji_fly_20250722_185244_0181_1769184310403_photo_modified_4},
+            ]
+        },
+        {
+            label: '<b>🗺️ Mapas Base</b>',
+            selectAllCheckbox: false, 
+            collapsed: true, 
+            children: [
+                {label: "🛰️ Google Híbrido", layer: layer_GoogleSatelliteHybrid_3, radioGroup: 'bm' },
+                {label: "🌍 Google Satélite", layer: layer_GoogleMapSatellite_2, radioGroup: 'bm' },
+                {label: "🗺️ Google Maps", layer: layer_GoogleMaps_1, radioGroup: 'bm' },
+                {label: "🏙️ OpenStreetMap", layer: layer_OpenStreetMap_0, radioGroup: 'bm' },
+            ]
+        }
+    ];
+
+    // DIBUJAR EL CONTROL
+    var isMobile = window.innerWidth < 768;
+    var lay = L.control.layers.tree(null, overlaysTree, {
+        namedToggle: false,
+        selectorBack: false,
+        collapsed: isMobile,
+    });
+    
+    lay.addTo(map);
         
-        lay.addTo(map);
-        
-        setBounds();
+        //setBounds();
         var i = 0;
         layer_Otro_6.eachLayer(function(layer) {
             var context = {
@@ -1281,6 +1521,29 @@
         box-shadow: 0 4px 10px rgba(11, 28, 44, 0.3);
     }
     @keyframes slideUp { from {transform:translateY(50px); opacity:0} to {transform:translateY(0); opacity:1} }
+
+    /* --- ESTILO DE LA CAJA BLANCA DEL LOGO --- */
+        .logo-box {
+    background-color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    margin-right: 15px;
+    /* Antes 50px, ahora 60px (más alta) */
+    height: 60px; 
+    display: flex;
+    align-items: center; /* Esto centra el logo verticalmente a fuerza */
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+        /* Ajuste para que la imagen se acomode dentro de la caja */
+        #drobot-logo { 
+            height: 90%;   /* Que ocupe casi toda la caja */
+            width: auto;
+            margin-right: 0; /* Quitamos el margen viejo */
+            display: block; 
+            filter: none;    /* Quitamos filtros anteriores si había */
+        }
 </style>
 
 <script>
