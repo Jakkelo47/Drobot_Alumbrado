@@ -30,28 +30,23 @@
     }
 
     /* --- 2. ELIMINAR REBOTE (NUEVO) --- */
+    /* --- CORRECCIÓN MÓVIL: BLOQUEO DE PANTALLA --- */
     html, body { 
         margin: 0; 
         padding: 0; 
         width: 100%; 
         height: 100%; 
         overflow: hidden; 
-        overscroll-behavior: none; /* Esto evita que "reboten" en iPhone/Android */
+        position: fixed; /* ESTO ES VITAL EN IPHONE/ANDROID */
     }
-        /* --- FUENTE OFICIAL --- */
-        body, .leaflet-container, .drobot-title {
-            font-family: 'Montserrat', sans-serif !important;
-        }
-        
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
 
-        #map {
-    width: 100%;
-    
-    height: calc(100vh - 80px) !important; 
-    margin-top: 0;
-    background-color: #f0f0f0;
-}
+    #map {
+        width: 100%;
+        /* Altura calculada menos la barra superior (80px) */
+        height: calc(100% - 80px) !important; 
+        margin-top: 0;
+        background-color: #f0f0f0;
+    }
 
         /* --- 1. BARRA SUPERIOR (TU PALETA EXACTA) --- */
         #top-bar {
@@ -1125,12 +1120,13 @@
     if (typeof json_Manzanas_4 !== 'undefined') {
         layer_Manzanas = new L.geoJson(json_Manzanas_4, {
             
-            renderer: dibujanteCompartido,
-            // 2. ESTILO BASE (El Fantasma Invisible)
+            renderer: dibujanteCompartido, // Mantiene la corrección de los clics
+            
+            // 2. ESTILO BASE
             style: function(feature) {
                 return {
                     pane: 'pane_Alumbradopostes_12',
-                    color: '#ffffff' ,
+                    color: '#ffffff',
                     weight: 1.2,
                     fill: true,
                     fillColor: '#ffffff',
@@ -1139,56 +1135,61 @@
                 };
             },
             
-            // 3. LÓGICA DE INTERACCIÓN
+            // 3. INTERACCIÓN OPTIMIZADA (Aquí está la magia) 🚀
             onEachFeature: function (feature, layer) {
                 
-                // Función para PRENDER (EL CAMBIO ESTÁ AQUÍ 👇)
                 function encenderManzana(targetLayer) {
-                    // Si ya hay una prendida (y no es esta), APÁGALA
+                    if (!map.hasLayer(layer_Manzanas)) return;
                     if (manzanaActiva && manzanaActiva !== targetLayer) {
                         layer_Manzanas.resetStyle(manzanaActiva);
                     }
                     
-                    // AHORA SÍ: Efecto "Luz Prendida"
                     targetLayer.setStyle({
-                        weight: 3,             // Borde un pelín más grueso para resaltar
-                        color: '#C3935D',      // Borde: Dorado Oficial (Serio)
-                        fillColor: '#FFD700',  // Relleno: Oro Brillante (Luz)
-                        fillOpacity: 0.3       // 30% Opacidad (Se nota más pero deja ver el mapa)
+                        weight: 3, 
+                        color: '#C3935D', 
+                        fillColor: '#FFD700', 
+                        fillOpacity: 0.3 
                     });
                     
-                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                    // Solo traemos al frente si NO es móvil (para evitar parpadeos)
+                    if (!L.Browser.mobile && !L.Browser.ie && !L.Browser.edge) {
                         targetLayer.bringToFront();
                     }
                     
                     manzanaActiva = targetLayer;
                 }
 
-                // Función para APAGAR (Reset)
                 function apagarManzana(targetLayer) {
+                    if (!map.hasLayer(layer_Manzanas)) return;
                     layer_Manzanas.resetStyle(targetLayer);
                     if (manzanaActiva === targetLayer) {
                         manzanaActiva = null;
                     }
                 }
 
-                // EVENTOS
+                // --- DIVIDIMOS LOS EVENTOS ---
+
+                // 1. EVENTOS PESADOS (Solo permitidos en PC) 💻
+                if (!L.Browser.mobile) {
+                    layer.on({
+                        mouseover: function(e) { encenderManzana(e.target); },
+                        mouseout: function(e) { 
+                            if (!e.target.isPopupOpen()) { apagarManzana(e.target); } 
+                        }
+                    });
+                }
+
+                // 2. EVENTOS LIGEROS (PC y Celular) 📱💻
                 layer.on({
-                    mouseover: function(e) { encenderManzana(e.target); },
-                    
-                    mouseout: function(e) { 
-                        if (!e.target.isPopupOpen()) { apagarManzana(e.target); } 
-                    },
-                    
                     click: function(e) {
                         encenderManzana(e.target);
-                        map.fitBounds(e.target.getBounds());
+                        // En móvil a veces es mejor no hacer zoom automático si marea
+                        // map.fitBounds(e.target.getBounds()); 
                     },
-                    
                     popupclose: function(e) { apagarManzana(e.target); }
                 });
 
-                // 4. FICHA TÉCNICA (TU DISEÑO DE LUJO)
+                // 4. FICHA TÉCNICA (Tu diseño)
                 var props = feature.properties;
                 var fichaHTML = `
                     <div style="font-family: 'Montserrat', sans-serif; min-width: 220px;">
@@ -1222,6 +1223,9 @@
                 layer.bindPopup(fichaHTML, { maxWidth: 300, className: 'popup-manzana-custom' });
             }
         }).addTo(map);
+        
+        layer_Manzanas.on('remove', function() { manzanaActiva = null; });
+
     } else {
         console.log("⚠️ ERROR: No encuentro json_Manzanas_4");
         layer_Manzanas = L.layerGroup();
@@ -1231,20 +1235,16 @@
        (Ahora sí podemos usar las variables de arriba)
        -------------------------------------------------------- */
 
-    // --- C. VIALIDADES (Red de Calles) ---
-    // --- C. VIALIDADES (Versión Blindada Anti-Crashes) ---
-    
-    // 1. VARIABLE DE RASTREO (El Vigilante de Calles)
-    // --- C. VIALIDADES (Modo Turbo con Canvas) ---
-    
+    // --- C. VIALIDADES (Red de Calles) ---   
     var vialidadActiva = null;
     // --- C. VIALIDADES (Versión Pro: Limpia nombres y muestra Claves) ---
+    // --- C. VIALIDADES (Versión Pro + Optimización Móvil) ---
     var layer_Vialidades;
 
     if (typeof json_Vialidades_6 !== 'undefined') {
         layer_Vialidades = new L.geoJson(json_Vialidades_6, {
             
-            // 🔥 USAMOS EL DIBUJANTE COMPARTIDO (Para que no bloquee las manzanas)
+            // 🔥 USAMOS EL DIBUJANTE COMPARTIDO
             renderer: dibujanteCompartido,
             
             // 1. ESTILO TÉCNICO
@@ -1259,51 +1259,63 @@
                 };
             },
             
-            // 2. INTERACCIÓN
+            // 2. INTERACCIÓN OPTIMIZADA 🚀
             onEachFeature: function (feature, layer) {
                 
-                layer.on({
-                    mouseover: function(e) {
-                        var layer = e.target;
-                        layer.setStyle({
-                            color: '#2c3e50', 
-                            weight: 5,        
-                            dashArray: '',    
-                            opacity: 1
-                        });
-                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                            layer.bringToFront();
-                        }
-                    },
-                    mouseout: function(e) {
-                        layer_Vialidades.resetStyle(e.target);
-                    },
-                    click: function(e) {
-                        map.fitBounds(e.target.getBounds());
+                // Definimos funciones para no repetir código
+                function resaltarVialidad(targetLayer) {
+                    targetLayer.setStyle({
+                        color: '#2c3e50', 
+                        weight: 5,        
+                        dashArray: '',    
+                        opacity: 1
+                    });
+                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                        targetLayer.bringToFront();
                     }
-                });
-
-                // 3. LÓGICA INTELIGENTE DE NOMBRES
-                // 3. LÓGICA NIVEL EXPERTO (Respeta si es Calle, Privada o Avenida)
-                var props = feature.properties;
-                
-                var tipo = props.TIPOVIAL || '';       // Ej: "Privada", "Calle", "Avenida"
-                var nombreRaw = props.NOMVIAL || '';   // Ej: "Ninguno", "Juarez"
-
-                // 1. Si el nombre es "Ninguno", lo cambiamos a "SIN NOMBRE"
-                if (nombreRaw.toLowerCase() === 'ninguno') {
-                    nombreRaw = 'SIN NOMBRE';
                 }
 
-                // 2. Unimos. Ej: "Privada" + "SIN NOMBRE" = "PRIVADA SIN NOMBRE"
-                var nombreCompleto = (tipo + ' ' + nombreRaw).trim();
+                function restaurarVialidad(targetLayer) {
+                    layer_Vialidades.resetStyle(targetLayer);
+                }
                 
-                // 3. Si por alguna razón quedó vacío, usamos el genérico
+                // --- AQUI ESTÁ EL FILTRO DE RENDIMIENTO ---
+
+                // A. SOLO EN PC (Mouse): Activamos el efecto "Hover" (pesado)
+                if (!L.Browser.mobile) {
+                    layer.on({
+                        mouseover: function(e) { resaltarVialidad(e.target); },
+                        mouseout: function(e) { restaurarVialidad(e.target); }
+                    });
+                }
+
+                // B. EN TODOS (PC y Celular): El Clic funciona siempre
+                layer.on({
+                    click: function(e) {
+                        // Truco visual para móvil: Al dar clic, resaltamos la calle
+                        // (porque en celular no hay mouseover previo)
+                        if (L.Browser.mobile) {
+                            resaltarVialidad(e.target);
+                        }
+                        map.fitBounds(e.target.getBounds());
+                    },
+                    // Importante: Al cerrar la ficha, apagamos el resaltado
+                    popupclose: function(e) { restaurarVialidad(e.target); }
+                });
+
+                // 3. LÓGICA INTELIGENTE DE NOMBRES (Tu lógica intacta)
+                var props = feature.properties;
+                var tipo = props.TIPOVIAL || ''; 
+                var nombreRaw = props.NOMVIAL || '';
+
+                if (nombreRaw.toLowerCase() === 'ninguno') { nombreRaw = 'SIN NOMBRE'; }
+
+                var nombreCompleto = (tipo + ' ' + nombreRaw).trim();
                 if (nombreCompleto === "" || nombreCompleto === "SIN NOMBRE") {
                     nombreCompleto = "VIALIDAD SIN NOMBRE";
                 }
 
-                // 4. FICHA TÉCNICA MEJORADA
+                // 4. FICHA TÉCNICA
                 var fichaCalle = `
                     <div style="font-family: 'Montserrat', sans-serif; min-width: 240px;">
                         
