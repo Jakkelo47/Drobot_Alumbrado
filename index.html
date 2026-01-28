@@ -31,39 +31,41 @@
 
     /* --- 2. ELIMINAR REBOTE (NUEVO) --- */
     /* --- CORRECCIÓN MÓVIL: BLOQUEO DE PANTALLA --- */
+    /* --- ESTRUCTURA MODERNA (FLEXBOX) - ADIÓS BUGS --- */
+    /* --- 1. ESTRUCTURA FLEXBOX (ADIÓS BUGS DE PANTALLA) --- */
     html, body { 
         margin: 0; 
         padding: 0; 
         width: 100%; 
         height: 100%; 
         overflow: hidden; 
-        position: fixed; /* ESTO ES VITAL EN IPHONE/ANDROID */
+        display: flex;           /* ACTIVAMOS FLEXBOX */
+        flex-direction: column;  /* Barra arriba, Mapa abajo */
+    }
+
+    #top-bar {
+        flex: 0 0 70px; /* Altura FIJA de 70px (no se estira ni encoge) */
+        /* Tus estilos visuales se mantienen: */
+        background: #7E1928; 
+        border-bottom: 4px solid #C3935D; 
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 3000;
+        position: relative;
     }
 
     #map {
+        flex: 1; /* Ocupa TODO el espacio sobrante automáticamente */
         width: 100%;
-        /* Altura calculada menos la barra superior (80px) */
-        height: calc(100% - 80px) !important; 
-        margin-top: 0;
+        height: auto !important; /* Dejamos que Flexbox decida la altura */
+        margin: 0;
         background-color: #f0f0f0;
+        z-index: 1;
     }
-
-        /* --- 1. BARRA SUPERIOR (TU PALETA EXACTA) --- */
-        #top-bar {
-            height: 80px;
-            /* TU COLOR 1: Guinda Oscuro #7E1928 */
-            background: #7E1928; 
-            /* TU COLOR 2: Dorado #C3935D */
-            border-bottom: 4px solid #C3935D; 
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 3000;
-            position: relative;
-        }
 
         .logo-area {
             display: flex;
@@ -289,60 +291,89 @@
         /* --- MODO MÓVIL BLINDADO: FICHA TIPO "UBER/GOOGLE" --- */
         /* --- MODO MÓVIL "NUCLEAR" (Fuerza Bruta) --- */
     /* --- MODO MÓVIL PRO: PANEL INDEPENDIENTE --- */
+   /* --- MODO MÓVIL: PANEL + BOTONES ERGONÓMICOS --- */
     @media (max-width: 768px) {
         
-        /* 1. OCULTAR EL POPUP ORIGINAL DEL MAPA (Pero sigue existiendo invisible) */
-        .leaflet-popup {
-            display: none !important;
-        }
+        /* A. AJUSTES DE BARRA SUPERIOR */
+        #top-bar { flex: 0 0 60px; padding: 0 10px; } /* Más compacta */
+        .logo-area img { height: 35px; }
+        .drobot-title { font-size: 14px; line-height: 1.1; }
+        .client-area { display: none; } /* Limpiamos espacio */
 
-        /* 2. ESTILO DEL NUEVO PANEL DESLIZANTE */
+        /* B. PANEL DESLIZANTE (TU CÓDIGO QUE YA FUNCIONA) */
+        .leaflet-popup { display: none !important; }
+
         .panel-movil-oculto {
             position: fixed;
-            bottom: -100%; /* Empieza escondido abajo */
+            bottom: -100%;
             left: 0;
             width: 100%;
             background: white;
             border-radius: 20px 20px 0 0;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
-            z-index: 99999; /* Encima de TODO */
+            z-index: 99999;
             transition: bottom 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
             padding: 20px;
-            max-height: 50vh; /* Máximo mitad de pantalla */
+            max-height: 50vh;
             overflow-y: auto;
-            display: block; /* Siempre bloque, controlado por bottom */
+            display: block;
         }
 
-        .panel-movil-activo {
-            bottom: 0 !important; /* Sube a la vista */
-        }
+        .panel-movil-activo { bottom: 0 !important; }
 
-        /* Botón de cerrar */
         #btn-cerrar-panel {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: #7E1928; /* Guinda */
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 100000;
+            position: absolute; top: 10px; right: 15px;
+            background: #7E1928; color: white;
+            border: none; border-radius: 50%;
+            width: 30px; height: 30px; font-size: 20px;
+            cursor: pointer; z-index: 100000;
         }
 
-        /* Ajustar contenido copiado */
-        #contenido-panel {
-            font-family: 'Montserrat', sans-serif;
+        #contenido-panel { font-family: 'Montserrat', sans-serif; }
+
+        /* C. MOVER BOTONES A LA ZONA DEL PULGAR (ABAJO DERECHA) 👍 */
+        .leaflet-top.leaflet-left {
+            top: auto !important;
+            left: auto !important;
+            bottom: 30px !important;  /* Pegado abajo */
+            right: 15px !important;   /* Pegado a la derecha */
+            
+            /* Columna invertida: Zoom abajo, Capas arriba */
+            display: flex;
+            flex-direction: column-reverse; 
+            align-items: flex-end;
+        }
+
+        /* Estilo de los botones para dedo */
+        .leaflet-control {
+            margin-bottom: 15px !important;
+            margin-right: 0 !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+        }
+
+        /* Botones de Zoom (+ / -) */
+        .leaflet-control-zoom {
+            border-radius: 20px !important;
+            overflow: hidden;
+        }
+        .leaflet-control-zoom a {
+            width: 45px !important; height: 45px !important;
+            line-height: 45px !important; font-size: 20px !important;
+            color: #333 !important;
+        }
+
+        /* Botón de Capas (Sándwich) */
+        .leaflet-control-layers-toggle {
+            width: 50px !important; height: 50px !important;
+            border-radius: 50% !important;
+            background-color: #7E1928 !important;
+            background-size: 24px !important;
+            filter: invert(1) brightness(2); /* Hace el icono blanco */
         }
         
-        /* Hacer controles más chicos en cel */
-        .leaflet-control-zoom, .leaflet-control-layers {
-            transform: scale(0.8);
-            margin-right: 5px !important;
-        }
+        /* Ocultar escala */
+        .leaflet-control-scale { display: none; }
     }
         
     </style> <title></title>
