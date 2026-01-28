@@ -17,6 +17,11 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        
+    /* --- REGLA UNIVERSAL: OCULTAR PANEL MÓVIL EN PC --- */
+    .panel-movil-oculto {
+        display: none; 
+    }
 
         /* Estilo para las etiquetas de AGEB */
     .leaflet-tooltip.label-ageb {
@@ -288,10 +293,7 @@
         /* 👇👇👇 PEGA ESTO AQUÍ (CÓDIGO NUEVO) 👇👇👇 */
 
         /* --- MODO MÓVIL: FICHA TIPO "GOOGLE MAPS" --- */
-        /* --- MODO MÓVIL BLINDADO: FICHA TIPO "UBER/GOOGLE" --- */
-        /* --- MODO MÓVIL "NUCLEAR" (Fuerza Bruta) --- */
-    /* --- MODO MÓVIL PRO: PANEL INDEPENDIENTE --- */
-   /* --- MODO MÓVIL: PANEL + BOTONES ERGONÓMICOS --- */
+
     @media (max-width: 768px) {
         
         /* A. AJUSTES DE BARRA SUPERIOR */
