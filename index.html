@@ -274,15 +274,79 @@
             transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
         }
         .chart-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+        /* ... tus estilos anteriores ... */
         .chart-btn.active {
-            background: #7E1928; /* Guinda Activo */
+            background: #7E1928; 
             color: white; border-color: #7E1928;
             box-shadow: 0 4px 10px rgba(126, 25, 40, 0.3);
         }
         @keyframes slideUp { from {transform:translateY(50px); opacity:0} to {transform:translateY(0); opacity:1} }
-    </style>
-        <title></title>
-    </head>
+
+
+        /* 👇👇👇 PEGA ESTO AQUÍ (CÓDIGO NUEVO) 👇👇👇 */
+
+        /* --- MODO MÓVIL: FICHA TIPO "GOOGLE MAPS" --- */
+        /* --- MODO MÓVIL BLINDADO: FICHA TIPO "UBER/GOOGLE" --- */
+        /* --- MODO MÓVIL "NUCLEAR" (Fuerza Bruta) --- */
+    /* --- MODO MÓVIL PRO: PANEL INDEPENDIENTE --- */
+    @media (max-width: 768px) {
+        
+        /* 1. OCULTAR EL POPUP ORIGINAL DEL MAPA (Pero sigue existiendo invisible) */
+        .leaflet-popup {
+            display: none !important;
+        }
+
+        /* 2. ESTILO DEL NUEVO PANEL DESLIZANTE */
+        .panel-movil-oculto {
+            position: fixed;
+            bottom: -100%; /* Empieza escondido abajo */
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+            z-index: 99999; /* Encima de TODO */
+            transition: bottom 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            padding: 20px;
+            max-height: 50vh; /* Máximo mitad de pantalla */
+            overflow-y: auto;
+            display: block; /* Siempre bloque, controlado por bottom */
+        }
+
+        .panel-movil-activo {
+            bottom: 0 !important; /* Sube a la vista */
+        }
+
+        /* Botón de cerrar */
+        #btn-cerrar-panel {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #7E1928; /* Guinda */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100000;
+        }
+
+        /* Ajustar contenido copiado */
+        #contenido-panel {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* Hacer controles más chicos en cel */
+        .leaflet-control-zoom, .leaflet-control-layers {
+            transform: scale(0.8);
+            margin-right: 5px !important;
+        }
+    }
+        
+    </style> <title></title>
+</head>
     <body>
     <div id="top-bar"> <div class="logo-area">
             <div class="logo-box">
@@ -1114,82 +1178,34 @@
     // Esta variable recordará qué manzana está prendida para apagarla si el mouse falla.
     // --- B. MANZANAS (Versión Final: Estilo "Luz de Oro") ---
     
+    // --- B. MANZANAS (Optimización Extrema: Eventos Delegados) ---
     var manzanaActiva = null; 
     var layer_Manzanas;
 
     if (typeof json_Manzanas_4 !== 'undefined') {
+        // 1. CREACIÓN LIGERA (Sin eventos pesados dentro del bucle)
         layer_Manzanas = new L.geoJson(json_Manzanas_4, {
             
-            renderer: dibujanteCompartido, // Mantiene la corrección de los clics
+            renderer: dibujanteCompartido, // Tu canvas optimizado
+            smoothFactor: 1.5,             // Simplifica geometrías lejanas (vital para móvil)
             
-            // 2. ESTILO BASE
+            // Estilo Base (Simple y rápido)
             style: function(feature) {
+                // Si quieres usar la función de colores por AGEB, descomenta la siguiente línea
+                // var suBarrio = feature.properties.CVE_AGEB; 
                 return {
                     pane: 'pane_Alumbradopostes_12',
                     color: '#ffffff',
-                    weight: 1.2,
+                    weight: 1,  // Línea más delgada para rendimiento
                     fill: true,
-                    fillColor: '#ffffff',
-                    fillOpacity: 0.0,
+                    fillColor: '#ffffff', // O usa getColorPorAGEB(suBarrio) si ya tienes la función
+                    fillOpacity: 0.1,     // Casi invisible por defecto
                     interactive: true
                 };
             },
             
-            // 3. INTERACCIÓN OPTIMIZADA (Aquí está la magia) 🚀
+            // Lógica "Solo Datos" (Aquí solo pegamos el HTML, NO activamos clics)
             onEachFeature: function (feature, layer) {
-                
-                function encenderManzana(targetLayer) {
-                    if (!map.hasLayer(layer_Manzanas)) return;
-                    if (manzanaActiva && manzanaActiva !== targetLayer) {
-                        layer_Manzanas.resetStyle(manzanaActiva);
-                    }
-                    
-                    targetLayer.setStyle({
-                        weight: 3, 
-                        color: '#C3935D', 
-                        fillColor: '#FFD700', 
-                        fillOpacity: 0.3 
-                    });
-                    
-                    // Solo traemos al frente si NO es móvil (para evitar parpadeos)
-                    if (!L.Browser.mobile && !L.Browser.ie && !L.Browser.edge) {
-                        targetLayer.bringToFront();
-                    }
-                    
-                    manzanaActiva = targetLayer;
-                }
-
-                function apagarManzana(targetLayer) {
-                    if (!map.hasLayer(layer_Manzanas)) return;
-                    layer_Manzanas.resetStyle(targetLayer);
-                    if (manzanaActiva === targetLayer) {
-                        manzanaActiva = null;
-                    }
-                }
-
-                // --- DIVIDIMOS LOS EVENTOS ---
-
-                // 1. EVENTOS PESADOS (Solo permitidos en PC) 💻
-                if (!L.Browser.mobile) {
-                    layer.on({
-                        mouseover: function(e) { encenderManzana(e.target); },
-                        mouseout: function(e) { 
-                            if (!e.target.isPopupOpen()) { apagarManzana(e.target); } 
-                        }
-                    });
-                }
-
-                // 2. EVENTOS LIGEROS (PC y Celular) 📱💻
-                layer.on({
-                    click: function(e) {
-                        encenderManzana(e.target);
-                        // En móvil a veces es mejor no hacer zoom automático si marea
-                        // map.fitBounds(e.target.getBounds()); 
-                    },
-                    popupclose: function(e) { apagarManzana(e.target); }
-                });
-
-                // 4. FICHA TÉCNICA (Tu diseño)
                 var props = feature.properties;
                 var fichaHTML = `
                     <div style="font-family: 'Montserrat', sans-serif; min-width: 220px;">
@@ -1219,35 +1235,92 @@
                         </div>
                     </div>
                 `;
-
                 layer.bindPopup(fichaHTML, { maxWidth: 300, className: 'popup-manzana-custom' });
             }
-        }).addTo(map);
+        }); 
         
-        layer_Manzanas.on('remove', function() { manzanaActiva = null; });
+        // --- 2. LOS EVENTOS MAESTROS (OPTIMIZACIÓN REAL) ---
+        // Aquí está la clave: Asignamos el evento A LA CAPA ENTERA, no a cada manzana.
+        // Esto elimina el lag al prender/apagar capas.
+
+        // A. CLIC (Funciona en PC y Móvil igual)
+        layer_Manzanas.on('click', function(e) {
+            var layer = e.layer; // Leaflet nos dice automáticamente a qué manzana le dimos
+
+            // Lógica de "radio button": Apagar la anterior si existe
+            if (manzanaActiva && manzanaActiva !== layer) {
+                layer_Manzanas.resetStyle(manzanaActiva);
+            }
+            
+            // Encender la nueva
+            layer.setStyle({
+                weight: 3, 
+                color: '#C3935D', 
+                fillColor: '#FFD700', 
+                fillOpacity: 0.6 
+            });
+            
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+            
+            manzanaActiva = layer;
+        });
+
+        // B. AL CERRAR POPUP (Resetear)
+        layer_Manzanas.on('popupclose', function(e) {
+            var layer = e.layer;
+            layer_Manzanas.resetStyle(layer);
+            if (manzanaActiva === layer) {
+                manzanaActiva = null;
+            }
+        });
+
+        // C. HOVER (Solo si NO es móvil, para evitar sobrecarga)
+        if (!L.Browser.mobile) {
+            layer_Manzanas.on('mouseover', function(e) {
+                var layer = e.layer;
+                // Solo iluminamos si no está seleccionada ya
+                if (manzanaActiva !== layer) {
+                    layer.setStyle({
+                        weight: 3, 
+                        color: '#C3935D', 
+                        fillColor: '#FFD700', 
+                        fillOpacity: 0.6 
+                    });
+                    layer.bringToFront();
+                }
+            });
+
+            layer_Manzanas.on('mouseout', function(e) {
+                var layer = e.layer;
+                // Si no es la activa ni tiene el popup abierto, la apagamos
+                if (manzanaActiva !== layer && !layer.isPopupOpen()) {
+                    layer_Manzanas.resetStyle(layer);
+                }
+            });
+        }
+
+        // Finalmente, agregar al mapa
+        layer_Manzanas.addTo(map);
 
     } else {
         console.log("⚠️ ERROR: No encuentro json_Manzanas_4");
         layer_Manzanas = L.layerGroup();
     }
-    /* --------------------------------------------------------
-       PASO 2: CREAR EL MENÚ (SERVIR)
-       (Ahora sí podemos usar las variables de arriba)
-       -------------------------------------------------------- */
 
     // --- C. VIALIDADES (Red de Calles) ---   
     var vialidadActiva = null;
-    // --- C. VIALIDADES (Versión Pro: Limpia nombres y muestra Claves) ---
-    // --- C. VIALIDADES (Versión Pro + Optimización Móvil) ---
     var layer_Vialidades;
 
     if (typeof json_Vialidades_6 !== 'undefined') {
+        // 1. CREACIÓN LIGERA (Sin eventos pesados)
         layer_Vialidades = new L.geoJson(json_Vialidades_6, {
             
-            // 🔥 USAMOS EL DIBUJANTE COMPARTIDO
             renderer: dibujanteCompartido,
-            
-            // 1. ESTILO TÉCNICO
+            smoothFactor: 1.5, // Simplifica líneas rectas (VITAL para velocidad)
+
+            // Estilo Base
             style: function(feature) {
                 return {
                     pane: 'pane_Alumbradopostes_12', 
@@ -1259,73 +1332,28 @@
                 };
             },
             
-            // 2. INTERACCIÓN OPTIMIZADA 🚀
+            // Lógica "Solo Datos" (Solo pegamos el HTML)
             onEachFeature: function (feature, layer) {
-                
-                // Definimos funciones para no repetir código
-                function resaltarVialidad(targetLayer) {
-                    targetLayer.setStyle({
-                        color: '#2c3e50', 
-                        weight: 5,        
-                        dashArray: '',    
-                        opacity: 1
-                    });
-                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                        targetLayer.bringToFront();
-                    }
-                }
-
-                function restaurarVialidad(targetLayer) {
-                    layer_Vialidades.resetStyle(targetLayer);
-                }
-                
-                // --- AQUI ESTÁ EL FILTRO DE RENDIMIENTO ---
-
-                // A. SOLO EN PC (Mouse): Activamos el efecto "Hover" (pesado)
-                if (!L.Browser.mobile) {
-                    layer.on({
-                        mouseover: function(e) { resaltarVialidad(e.target); },
-                        mouseout: function(e) { restaurarVialidad(e.target); }
-                    });
-                }
-
-                // B. EN TODOS (PC y Celular): El Clic funciona siempre
-                layer.on({
-                    click: function(e) {
-                        // Truco visual para móvil: Al dar clic, resaltamos la calle
-                        // (porque en celular no hay mouseover previo)
-                        if (L.Browser.mobile) {
-                            resaltarVialidad(e.target);
-                        }
-                        map.fitBounds(e.target.getBounds());
-                    },
-                    // Importante: Al cerrar la ficha, apagamos el resaltado
-                    popupclose: function(e) { restaurarVialidad(e.target); }
-                });
-
-                // 3. LÓGICA INTELIGENTE DE NOMBRES (Tu lógica intacta)
                 var props = feature.properties;
+                
+                // Lógica de nombres
                 var tipo = props.TIPOVIAL || ''; 
                 var nombreRaw = props.NOMVIAL || '';
-
                 if (nombreRaw.toLowerCase() === 'ninguno') { nombreRaw = 'SIN NOMBRE'; }
-
                 var nombreCompleto = (tipo + ' ' + nombreRaw).trim();
                 if (nombreCompleto === "" || nombreCompleto === "SIN NOMBRE") {
                     nombreCompleto = "VIALIDAD SIN NOMBRE";
                 }
 
-                // 4. FICHA TÉCNICA
+                // Ficha Técnica
                 var fichaCalle = `
                     <div style="font-family: 'Montserrat', sans-serif; min-width: 240px;">
-                        
                         <div style="background: #34495e; color: white; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 3px solid #C3935D; text-align: center;">
                             <div style="font-size: 8px; letter-spacing: 1px; opacity:0.8;">CLAVE DE VIALIDAD</div>
                             <div style="font-size: 14px; font-weight: 800; letter-spacing: 2px;">
                                 ${props.CVEVIAL || 'S/N'}
                             </div>
                         </div>
-
                         <div style="padding: 15px; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px;">
                             <div style="text-align: center; margin-bottom: 10px;">
                                 <div style="font-size: 10px; color: #7f8c8d; font-weight: 600; margin-bottom: 4px; text-transform: uppercase;">NOMBRE PÚBLICO</div>
@@ -1333,7 +1361,6 @@
                                     ${nombreCompleto}
                                 </div>
                             </div>
-                            
                             <div style="border-top: 1px dashed #eee; padding-top: 8px; font-size: 11px; color: #666; display: flex; align-items: center; justify-content: center;">
                                 <span style="margin-right: 5px;">SENTIDO:</span> 
                                 <strong style="color: #333;">${props.SENTIDO || 'No Definido'}</strong>
@@ -1341,10 +1368,61 @@
                         </div>
                     </div>
                 `;
-
                 layer.bindPopup(fichaCalle, { className: 'popup-calle-custom' });
             }
-        }).addTo(map); 
+        });
+
+        // --- 2. LOS EVENTOS MAESTROS (OPTIMIZACIÓN REAL) ---
+        // Aquí conectamos el cerebro único para todas las calles
+
+        // A. CLIC (PC y Móvil)
+        layer_Vialidades.on('click', function(e) {
+            var layer = e.layer;
+            
+            // Efecto visual de selección
+            layer.setStyle({ 
+                color: '#2c3e50', 
+                weight: 5, 
+                dashArray: '', 
+                opacity: 1 
+            });
+            
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { 
+                layer.bringToFront(); 
+            }
+            
+            map.fitBounds(layer.getBounds());
+        });
+
+        // B. CERRAR POPUP (Resetear estilo)
+        layer_Vialidades.on('popupclose', function(e) {
+            layer_Vialidades.resetStyle(e.layer);
+        });
+
+        // C. HOVER (Solo PC)
+        if (!L.Browser.mobile) {
+            layer_Vialidades.on('mouseover', function(e) {
+                var layer = e.layer;
+                layer.setStyle({ 
+                    color: '#2c3e50', 
+                    weight: 5, 
+                    dashArray: '', 
+                    opacity: 1 
+                });
+                layer.bringToFront();
+            });
+            
+            layer_Vialidades.on('mouseout', function(e) {
+                // Solo restauramos si NO tiene la ficha abierta
+                if (!e.layer.isPopupOpen()) {
+                    layer_Vialidades.resetStyle(e.layer);
+                }
+            });
+        }
+
+        // Finalmente, agregar al mapa
+        layer_Vialidades.addTo(map);
+
     } else {
         console.log("⚠️ No encuentro json_Vialidades_6");
         layer_Vialidades = L.layerGroup();
@@ -1887,7 +1965,52 @@
 
         myChart = new Chart(ctx, config);
     }
+
+    // --- LÓGICA DEL PANEL MÓVIL (SISTEMA ESPEJO) ---
+    
+    // 1. Detectar cuando el mapa quiere abrir un popup
+    map.on('popupopen', function(e) {
+        // Solo si es celular
+        if (window.innerWidth < 768) {
+            
+            // A. Copiamos el contenido HTML del popup original
+            var contenido = e.popup.getContent();
+            
+            // B. Lo pegamos en nuestro panel móvil
+            var panel = document.getElementById('panel-movil');
+            var contenedor = document.getElementById('contenido-panel');
+            
+            contenedor.innerHTML = contenido;
+            
+            // C. Mostramos el panel (Deslizar hacia arriba)
+            panel.classList.add('panel-movil-activo');
+        }
+    });
+
+    // 2. Función para cerrar el panel
+    function cerrarPanelMovil() {
+        // A. Ocultar panel visualmente
+        document.getElementById('panel-movil').classList.remove('panel-movil-activo');
+        
+        // B. AVISAR AL MAPA que cierre su popup invisible
+        // (Esto es importante para que se apague la luz de la manzana/calle)
+        map.closePopup();
+    }
+
+    // 3. Si el usuario toca el mapa (fuera del popup), cerrar el panel
+    map.on('click', function() {
+        if (window.innerWidth < 768) {
+            cerrarPanelMovil();
+        }
+    });
+
 </script>
+
+    <div id="panel-movil" class="panel-movil-oculto">
+    <button id="btn-cerrar-panel" onclick="cerrarPanelMovil()">×</button>
+    <div id="contenido-panel">
+        </div>
+</div>
 
     </body>
 </html>
