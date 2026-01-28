@@ -17,6 +17,13 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+
+        /* Estilo para las etiquetas de AGEB */
+    .leaflet-tooltip.label-ageb {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
     /* --- 1. EL CANDADO UNIVERSAL (NUEVO) --- */
     * {
         box-sizing: border-box; /* Esto arregla el error de matemáticas */
@@ -298,6 +305,8 @@
 
     </div> <div id="map">
     </div>
+        <script src="data/AGEB_7.js"></script>
+        <script src="data/Vialidades_6.js"></script>
         <script src="data/Manzanas_4.js"></script>
         <script src="data/Limitemunicipal_5.js"></script>
         <script src="js/leaflet-side-by-side.js"></script>
@@ -341,6 +350,7 @@
             zoomControl:false, maxZoom:28, minZoom:1
         }).setView([20.0605, -97.0555], 14); // <--- AQUÍ FORZAMOS MARTÍNEZ DE LA TORRE
         //var hash = new L.Hash(map);
+        var dibujanteCompartido = L.canvas({ padding: 0.5 , tolerance: 15});
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
         function removeEmptyRowsFromPopupContent(content, feature) {
@@ -1115,6 +1125,7 @@
     if (typeof json_Manzanas_4 !== 'undefined') {
         layer_Manzanas = new L.geoJson(json_Manzanas_4, {
             
+            renderer: dibujanteCompartido,
             // 2. ESTILO BASE (El Fantasma Invisible)
             style: function(feature) {
                 return {
@@ -1220,21 +1231,215 @@
        (Ahora sí podemos usar las variables de arriba)
        -------------------------------------------------------- */
 
+    // --- C. VIALIDADES (Red de Calles) ---
+    // --- C. VIALIDADES (Versión Blindada Anti-Crashes) ---
+    
+    // 1. VARIABLE DE RASTREO (El Vigilante de Calles)
+    // --- C. VIALIDADES (Modo Turbo con Canvas) ---
+    
+    var vialidadActiva = null;
+    // --- C. VIALIDADES (Versión Pro: Limpia nombres y muestra Claves) ---
+    var layer_Vialidades;
+
+    if (typeof json_Vialidades_6 !== 'undefined') {
+        layer_Vialidades = new L.geoJson(json_Vialidades_6, {
+            
+            // 🔥 USAMOS EL DIBUJANTE COMPARTIDO (Para que no bloquee las manzanas)
+            renderer: dibujanteCompartido,
+            
+            // 1. ESTILO TÉCNICO
+            style: function(feature) {
+                return {
+                    pane: 'pane_Alumbradopostes_12', 
+                    color: '#636e72',      // Gris Asfalto
+                    weight: 3,             
+                    opacity: 0.8,
+                    dashArray: '5, 7',     
+                    interactive: true
+                };
+            },
+            
+            // 2. INTERACCIÓN
+            onEachFeature: function (feature, layer) {
+                
+                layer.on({
+                    mouseover: function(e) {
+                        var layer = e.target;
+                        layer.setStyle({
+                            color: '#2c3e50', 
+                            weight: 5,        
+                            dashArray: '',    
+                            opacity: 1
+                        });
+                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                            layer.bringToFront();
+                        }
+                    },
+                    mouseout: function(e) {
+                        layer_Vialidades.resetStyle(e.target);
+                    },
+                    click: function(e) {
+                        map.fitBounds(e.target.getBounds());
+                    }
+                });
+
+                // 3. LÓGICA INTELIGENTE DE NOMBRES
+                // 3. LÓGICA NIVEL EXPERTO (Respeta si es Calle, Privada o Avenida)
+                var props = feature.properties;
+                
+                var tipo = props.TIPOVIAL || '';       // Ej: "Privada", "Calle", "Avenida"
+                var nombreRaw = props.NOMVIAL || '';   // Ej: "Ninguno", "Juarez"
+
+                // 1. Si el nombre es "Ninguno", lo cambiamos a "SIN NOMBRE"
+                if (nombreRaw.toLowerCase() === 'ninguno') {
+                    nombreRaw = 'SIN NOMBRE';
+                }
+
+                // 2. Unimos. Ej: "Privada" + "SIN NOMBRE" = "PRIVADA SIN NOMBRE"
+                var nombreCompleto = (tipo + ' ' + nombreRaw).trim();
+                
+                // 3. Si por alguna razón quedó vacío, usamos el genérico
+                if (nombreCompleto === "" || nombreCompleto === "SIN NOMBRE") {
+                    nombreCompleto = "VIALIDAD SIN NOMBRE";
+                }
+
+                // 4. FICHA TÉCNICA MEJORADA
+                var fichaCalle = `
+                    <div style="font-family: 'Montserrat', sans-serif; min-width: 240px;">
+                        
+                        <div style="background: #34495e; color: white; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 3px solid #C3935D; text-align: center;">
+                            <div style="font-size: 8px; letter-spacing: 1px; opacity:0.8;">CLAVE DE VIALIDAD</div>
+                            <div style="font-size: 14px; font-weight: 800; letter-spacing: 2px;">
+                                ${props.CVEVIAL || 'S/N'}
+                            </div>
+                        </div>
+
+                        <div style="padding: 15px; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px;">
+                            <div style="text-align: center; margin-bottom: 10px;">
+                                <div style="font-size: 10px; color: #7f8c8d; font-weight: 600; margin-bottom: 4px; text-transform: uppercase;">NOMBRE PÚBLICO</div>
+                                <div style="font-size: 15px; font-weight: 800; color: #2c3e50; text-transform: uppercase; line-height: 1.2;">
+                                    ${nombreCompleto}
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px dashed #eee; padding-top: 8px; font-size: 11px; color: #666; display: flex; align-items: center; justify-content: center;">
+                                <span style="margin-right: 5px;">SENTIDO:</span> 
+                                <strong style="color: #333;">${props.SENTIDO || 'No Definido'}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                layer.bindPopup(fichaCalle, { className: 'popup-calle-custom' });
+            }
+        }).addTo(map); 
+    } else {
+        console.log("⚠️ No encuentro json_Vialidades_6");
+        layer_Vialidades = L.layerGroup();
+    }
+
+    // --- D. AGEBS (Zonificación de Barrios) ---
+    var layer_AGEB;
+
+    // 👇 AQUÍ ESTÁ LA CORRECCIÓN: Usamos 'json_AGEB_6'
+    if (typeof json_AGEB_6 !== 'undefined') {
+        layer_AGEB = new L.geoJson(json_AGEB_6, {
+            
+            // Usamos el dibujante compartido (Canvas)
+            renderer: dibujanteCompartido,
+            
+            // ESTILO: Marco Morado
+            style: function(feature) {
+                return {
+                    pane: 'pane_Alumbradopostes_12',
+                    color: '#6c5ce7',       // Morado
+                    weight: 2,
+                    opacity: 0.8,
+                    fill: false,            // SIN RELLENO (Importante)
+                    interactive: true
+                };
+            },
+            
+            // INTERACCIÓN
+            onEachFeature: function (feature, layer) {
+                
+                // Efecto Hover
+                layer.on({
+                    mouseover: function(e) {
+                        var layer = e.target;
+                        layer.setStyle({
+                            weight: 4,
+                            color: '#8e44ad',
+                            opacity: 1
+                        });
+                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                            layer.bringToFront();
+                        }
+                    },
+                    mouseout: function(e) {
+                        layer_AGEB.resetStyle(e.target);
+                    }
+                });
+
+                // ETIQUETA FLOTANTE (CLAVE DE BARRIO)
+                if (feature.properties['CVE_AGEB']) {
+                    layer.bindTooltip(
+                        `<div style="font-weight:900; font-size:10px; color:#6c5ce7; text-shadow: 1px 1px 0 #fff;">
+                            ${feature.properties['CVE_AGEB']}
+                        </div>`,
+                        { permanent: true, direction: "center", className: "label-ageb" }
+                    );
+                }
+
+                // FICHA TÉCNICA
+                // FICHA TÉCNICA PRO (Con Clave Única)
+                var props = feature.properties;
+                
+                var popupAGEB = `
+                    <div style="text-align:center; font-family: 'Montserrat', sans-serif; min-width: 200px;">
+                        
+                        <div style="background: #6c5ce7; color: white; padding: 10px; border-radius: 6px 6px 0 0; text-transform: uppercase;">
+                            <div style="font-size: 10px; letter-spacing: 1px; opacity: 0.9;">ZONA (AGEB)</div>
+                            <div style="font-size: 22px; font-weight: 800; margin-top: 0px;">
+                                ${props.CVE_AGEB || 'S/N'}
+                            </div>
+                        </div>
+
+                        <div style="padding: 15px; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px;">
+                            <div style="margin-bottom: 5px;">
+                                <span style="font-size: 9px; color: #888; font-weight: 700; display: block; margin-bottom: 3px;">CLAVE ÚNICA NACIONAL (CVEGEO)</span>
+                                <span style="background: #f0f3f6; color: #2c3e50; padding: 5px 10px; border-radius: 4px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #dcdcdc; display: block; letter-spacing: 0.5px;">
+                                    ${props.CVEGEO || 'Sin Dato'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                layer.bindPopup(popupAGEB, { className: 'popup-ageb-custom' });
+            }
+        }); 
+    } else {
+        console.log("⚠️ No encuentro la variable json_AGEB_6");
+        layer_AGEB = L.layerGroup();
+    }
+
     var overlaysTree = [
         // GRUPO 1: CATASTRO
         {
-            label: '<b>🏛️ Catastro Municipal</b>',
+            label: '<b>Catastro Municipal</b>',
             selectAllCheckbox: true,
             collapsed: false,
             children: [
                 {label: "📍 Límite Municipal", layer: layer_Limites},
+                {label: "🟣 Zonificación (AGEBs)", layer: layer_AGEB},
                 {label: "⬜ Traza Urbana (Manzanas)", layer: layer_Manzanas},
+                {label: "🛣️ Red Vial (Nombres)", layer: layer_Vialidades},
             ]
         },
 
         // GRUPO 3: INFRAESTRUCTURA (Lámparas)
         {
-            label: '<b>💡 INFRAESTRUCTURA</b>',
+            label: '<b>Infraestructura</b>',
             selectAllCheckbox: true,
             collapsed: true,
             children: [
@@ -1258,7 +1463,7 @@
             ]
         },
         {
-            label: '<b>🗺️ Mapas Base</b>',
+            label: '<b>Mapas Base</b>',
             selectAllCheckbox: false, 
             collapsed: true, 
             children: [
